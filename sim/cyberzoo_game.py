@@ -1,6 +1,6 @@
 import pygame
 
-from models import GameObject
+from models import Drone
 from utils import load_sprite
 
 
@@ -8,9 +8,8 @@ class CyberZooSim:
     def __init__(self):
         self._init_pygame()
         self.screen = pygame.display.set_mode((800, 800))
-        self.drone = GameObject(
-            (300, 300), load_sprite("drone"), (0, 0)
-        )
+        self.clock = pygame.time.Clock()
+        self.drone = Drone((400, 300))
 
     def main_loop(self):
         while True:
@@ -29,6 +28,13 @@ class CyberZooSim:
             ):
                 quit()
 
+        is_key_pressed = pygame.key.get_pressed()
+
+        if is_key_pressed[pygame.K_RIGHT]:
+            self.drone.rotate(clockwise=True)
+        elif is_key_pressed[pygame.K_LEFT]:
+            self.drone.rotate(clockwise=False)
+
     def _process_game_logic(self):
         self.drone.move()
 
@@ -36,4 +42,5 @@ class CyberZooSim:
         self.screen.fill((0, 255, 0))
         self.drone.draw(self.screen)
         pygame.display.flip()
+        self.clock.tick(60)
 

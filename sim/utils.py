@@ -2,7 +2,7 @@ from pygame.image import load
 
 
 def load_sprite(name, with_alpha=True):
-    path = f"arena_sim/sprites/{name}.png"
+    path = f"sim/sprites/{name}.png"
     loaded_sprite = load(path)
 
     if with_alpha:
