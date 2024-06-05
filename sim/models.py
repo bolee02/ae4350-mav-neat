@@ -1,5 +1,5 @@
 import pygame
-from utils import load_sprite
+from utils import load_sprite, get_random_velocity
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 
@@ -40,6 +40,7 @@ class Drone(GameObject):
     def __init__(self, position):
         self.direction = Vector2(UP)
         super().__init__(position, load_sprite("drone"), Vector2(0))
+        self.sprite = pygame.transform.scale(self.sprite, (50, 50))
 
     def rotate(self, clockwise=True):
         sign = 1 if clockwise else -1
@@ -55,3 +56,11 @@ class Drone(GameObject):
 
     def accelerate(self):
         self.velocity += self.direction * self.ACCELERATION
+
+
+class Pole(GameObject):
+    def __init__(self, position):
+        super().__init__(
+            position, load_sprite("pole"), get_random_velocity(1, 3)
+        )
+        self.sprite = pygame.transform.scale(self.sprite, (75, 75))
