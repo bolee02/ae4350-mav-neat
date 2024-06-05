@@ -1,6 +1,7 @@
 import random
 
 from pygame.image import load
+from pygame import Color
 from pygame.math import Vector2
 
 
@@ -25,3 +26,9 @@ def get_random_velocity(min_speed, max_speed):
     speed = random.randint(min_speed, max_speed)
     angle = random.randrange(0, 360)
     return Vector2(speed, 0).rotate(angle)
+
+
+def print_text(surface, text, font, position=(0, 0), color=Color("black")):
+    text_surface = font.render(text, True, color)
+
+    surface.blit(text_surface, position)

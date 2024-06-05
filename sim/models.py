@@ -52,6 +52,7 @@ class Drone(GameObject):
         self.direction = Vector2(UP)
         super().__init__(position, load_sprite("drone"), Vector2(0))
         self.sprite = pygame.transform.scale(self.sprite, (50, 50))
+        self.distance = 0
 
     def rotate(self, clockwise=True):
         sign = 1 if clockwise else -1
@@ -67,6 +68,9 @@ class Drone(GameObject):
 
     def accelerate(self):
         self.velocity += self.direction * self.ACCELERATION
+
+    def distance_travelled(self, time):
+        self.distance += math.sqrt(self.velocity.y**2 + self.velocity.x**2) * time / 100
 
 
 class Pole(GameObject):
