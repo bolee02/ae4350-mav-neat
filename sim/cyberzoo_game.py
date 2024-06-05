@@ -5,7 +5,7 @@ from utils import get_random_position
 
 
 class CyberZooSim:
-    MIN_DRONE_POLE_DISTANCE = 100
+    MIN_DRONE_POLE_DISTANCE = 50
     MIN_POLE_POLE_DISTANCE = 100
 
     def __init__(self):
@@ -79,9 +79,14 @@ class CyberZooSim:
 
         if self.drone:
             for pole in self.pole:
-                if pole.collides_with(self.drone):
+                damage, bounce = pole.collides_with(self.drone)
+                print(damage)
+                if damage:
                     self.drone = None
                     break
+                if bounce:
+                    self.drone.velocity.y = -self.drone.velocity.y
+                    self.drone.velocity.x = -self.drone.velocity.x
 
     def _draw(self):
         self.screen.fill((0, 255, 0))
