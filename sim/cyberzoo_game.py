@@ -1,4 +1,5 @@
 import pygame
+import neat
 
 from models import Drone, Pole
 from utils import get_random_position, print_text
@@ -10,7 +11,7 @@ class CyberZooSim:
     MIN_POLE_POLE_DISTANCE = 100
     DRONE_START_POS = Vector2(400, 300)
 
-    def __init__(self):
+    def __init__(self, genomes, config):
         self._init_pygame()
         self.screen = pygame.display.set_mode((700, 700))
         self.clock = pygame.time.Clock()
@@ -19,10 +20,20 @@ class CyberZooSim:
         self.time = 0
 
         self.poles = []
-        self.drone = Drone((400, 300))
+        self.drones = []
+
+        self.nets = []
+        self.ge = []
+
+        for _, g in genomes:
+            net = neat.nn.RecurrentNetwork.create(g, config)
+            self.nets.append(net)
+            self.drones.append(Drone((400, 300)))
+            g.fitness = 0
+            self.ge.append(g)
 
         positions = []
-        for _ in range(6):
+        for _ in range(4):
             while True:
                 position = get_random_position(self.screen)
                 if (
@@ -44,10 +55,15 @@ class CyberZooSim:
             positions.append(position)
 
     def main_loop(self):
-        while True:
+        running = True
+
+        while running:
             self._handle_input()
             self._process_game_logic()
             self._draw()
+
+            if len(self.drones) == 0:
+                running = False
 
     def _init_pygame(self):
         pygame.init()
@@ -61,38 +77,55 @@ class CyberZooSim:
                 quit()
 
         is_key_pressed = pygame.key.get_pressed()
+        for i, drone in enumerate(self.drones):
+            movement_output = self.nets[i].activate((drone.position.x, drone.position.y,
+                                                     drone.direction.x, drone.direction.y
+                                                     , drone.velocity.x, drone.velocity.y,
+                                                     self.poles[0].position.x, self.poles[0].position.y,
+                                                     self.poles[1].position.x, self.poles[1].position.y,
+                                                     self.poles[2].position.x, self.poles[2].position.y,
+                                                     self.poles[3].position.x, self.poles[3].position.y))
+            if movement_output[0] > 0.5:
+                self.ge[i].fitness += 1
+                drone.rotate(clockwise=True)
+            if movement_output[1] > 0.5:
+                self.ge[i].fitness += 1
+                drone.accelerate()
+            if movement_output[2] > 0.5:
+                self.ge[i].fitness += 1
+                drone.rotate(clockwise=False)
 
-        if self.drone:
             if is_key_pressed[pygame.K_RIGHT]:
-                self.drone.rotate(clockwise=True)
+                drone.rotate(clockwise=True)
             if is_key_pressed[pygame.K_UP]:
-                self.drone.accelerate()
+                drone.accelerate()
             elif is_key_pressed[pygame.K_LEFT]:
-                self.drone.rotate(clockwise=False)
+                drone.rotate(clockwise=False)
 
     def _get_game_objects(self):
         game_objects = [*self.poles]
 
-        if self.drone:
-            game_objects.append(self.drone)
+        for drone in self.drones:
+            game_objects.append(drone)
 
         return game_objects
 
     def _process_game_logic(self):
         for game_object in self._get_game_objects():
             game_object.move(self.screen)
-
-        if self.drone:
-            self.drone.distance_travelled(self.time)
+        for i, drone in enumerate(self.drones):
+            drone.distance_travelled(self.time)
+            self.ge[i].fitness = drone.distance
 
             for pole in self.poles:
-                damage, bounce = pole.collides_with(self.drone)
+                damage, bounce = pole.collides_with(drone)
                 if damage:
-                    self.drone = None
+                    self.ge[i].fitness -= 10
+                    self.drones.remove(drone)
                     break
                 if bounce:
-                    self.drone.velocity.y = -self.drone.velocity.y
-                    self.drone.velocity.x = -self.drone.velocity.x
+                    drone.velocity.y = -drone.velocity.y
+                    drone.velocity.x = -drone.velocity.x
 
     def _draw(self):
         self.screen.fill((0, 255, 0))
@@ -103,9 +136,10 @@ class CyberZooSim:
         self.time = (pygame.time.get_ticks() - self.start_time) / 1000
         print_text(self.screen, f"Time: {round(self.time, 2)}", self.font)
 
-        if self.drone:
-            print_text(self.screen, f"Distance travelled: {round(self.drone.distance, 2)}",
-                       self.font, (0, 20))
+        max_distance = max((drone.distance for drone in self.drones), default=0)
+
+        print_text(self.screen, f"Highest distance travelled: {round(max_distance, 2)}",
+                   self.font, (0, 30))
 
         pygame.display.flip()
         self.clock.tick(60)

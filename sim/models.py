@@ -1,6 +1,6 @@
 import pygame
 import math
-from utils import load_sprite
+from utils import load_sprite, get_random_velocity
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 
@@ -34,13 +34,15 @@ class GameObject:
         damage = False
         bounce = False
         if (distance + 20 < self.radius + other.radius
-                and math.sqrt(other.velocity.y**2 + other.velocity.x**2) > 3):
+                and math.sqrt(other.velocity.y**2 + other.velocity.x**2) > -1):
             damage = True
             return damage, bounce
+        """
         elif (distance + 20 < self.radius + other.radius
                 and math.sqrt(other.velocity.y**2 + other.velocity.x**2) < 3):
             bounce = True
             return damage, bounce
+        """
         return damage, bounce
 
 
@@ -76,6 +78,6 @@ class Drone(GameObject):
 class Pole(GameObject):
     def __init__(self, position):
         super().__init__(
-            position, load_sprite("pole"), Vector2(0)
+            position, load_sprite("pole"), get_random_velocity(1, 3)
         )
         self.sprite = pygame.transform.scale(self.sprite, (75, 75))
