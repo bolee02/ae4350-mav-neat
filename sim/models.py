@@ -78,6 +78,18 @@ class Drone(GameObject):
 class Pole(GameObject):
     def __init__(self, position):
         super().__init__(
-            position, load_sprite("pole"), get_random_velocity(1, 3)
+            position, load_sprite("pole"), Vector2(0)
         )
         self.sprite = pygame.transform.scale(self.sprite, (75, 75))
+
+    def move_to(self, new_position):
+        self.velocity = Vector2(5, 5)
+        if self.position.x < new_position.x:
+            self.position.x += self.velocity.x
+        elif self.position.x > new_position.x:
+            self.position.x -= self.velocity.x
+
+        if self.position.y < new_position.y:
+            self.position.y += self.velocity.y
+        elif self.position.y > new_position.y:
+            self.position.y -= self.velocity.y

@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 from pygame.image import load
 from pygame import Color
@@ -6,7 +7,7 @@ from pygame.math import Vector2
 
 
 def load_sprite(name, with_alpha=True):
-    path = f"sim/sprites/{name}.png"
+    path = f"sprites/{name}.png"
     loaded_sprite = load(path)
 
     if with_alpha:
@@ -32,3 +33,7 @@ def print_text(surface, text, font, position=(0, 0), color=Color("black")):
     text_surface = font.render(text, True, color)
 
     surface.blit(text_surface, position)
+
+
+def normalize_array(arr, min_val, max_val):
+    return (arr - np.ones(len(arr))*min_val) / (max_val - np.ones(len(arr))*min_val)
