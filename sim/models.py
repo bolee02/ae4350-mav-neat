@@ -71,6 +71,9 @@ class Drone(GameObject):
     def accelerate(self):
         self.velocity += self.direction * self.ACCELERATION
 
+    def decelerate(self):
+        self.velocity -= self.direction * self.ACCELERATION
+
     def distance_travelled(self, time):
         self.distance += math.sqrt(self.velocity.y**2 + self.velocity.x**2) * time / 100
 
