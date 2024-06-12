@@ -7,7 +7,7 @@ reset_on_extinction   = True
 [DefaultGenome]
 activation_default      = relu
 activation_mutate_rate  = 0.1
-activation_options      = relu sigmoid tanh
+activation_options      = relu
 
 aggregation_default     = sum
 aggregation_mutate_rate = 0.0
@@ -31,12 +31,12 @@ enabled_default         = True
 enabled_mutate_rate     = 0.05
 
 feed_forward            = False
-initial_connection      = full_nodirect
+initial_connection      = full_direct
 
 node_add_prob           = 0.2
 node_delete_prob        = 0.05
 
-num_hidden              = 15
+num_hidden              = 19
 num_inputs              = 24
 num_outputs             = 3
 

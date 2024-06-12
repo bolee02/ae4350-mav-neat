@@ -152,10 +152,37 @@ class CyberZooSim:
         return game_objects
 
     def _process_game_logic(self):
-        for game_object in self._get_game_objects():
-            game_object.move(self.screen)
+        for i, drone in enumerate(self.drones):
+            drone.move(self.screen)
+            drone.distance_travelled(self.time)
+            self.ge[i].fitness += drone.distance/100
+
+            if drone.position == Vector2(350, 350):
+                self.ge[i].fitness -= 1
+
+            screen_width, screen_height = self.screen.get_size()
+
+            if drone.position.x - drone.radius - 1 < 0 or drone.position.x + drone.radius > screen_width:
+                self.ge[i].fitness -= 50
+            if drone.position.y - drone.radius - 1 < 0 or drone.position.y + drone.radius > screen_height:
+                self.ge[i].fitness -= 50
+
+            for pole in self.poles:
+                damage, bounce = pole.collides_with(drone)
+                if damage:
+                    self.ge[i].fitness -= 300
+                    self.nets.pop(i)
+                    self.ge.pop(i)
+                    self.drones.remove(drone)
+                    break
+                if bounce:
+                    drone.velocity.y = -drone.velocity.y
+                    drone.velocity.x = -drone.velocity.x
+                if pole.position.distance_to(drone.position) > self.MIN_POLE_POLE_DISTANCE:
+                    self.ge[i].fitness += 0.1
 
         for i, pole in enumerate(self.poles):
+            pole.move(self.screen)
             if self.move_to_event:
                 if pole.position.x < self.random_positions[i].x:
                     pole.position.x += 1
@@ -166,33 +193,6 @@ class CyberZooSim:
                     pole.position.y += 1
                 elif pole.position.y > self.random_positions[i].y:
                     pole.position.y -= 1
-
-        for i, drone in enumerate(self.drones):
-            drone.distance_travelled(self.time)
-            self.ge[i].fitness += drone.distance/1000
-
-            if drone.position == Vector2(350, 350):
-                self.ge[i].fitness -= 1
-
-            screen_width, screen_height = self.screen.get_size()
-            if drone.position.x - drone.radius < 0 or drone.position.x + drone.radius > screen_width:
-                self.ge[i].fitness -= 200
-            if drone.position.y - drone.radius < 0 or drone.position.y + drone.radius > screen_height:
-                self.ge[i].fitness -= 200
-
-            for pole in self.poles:
-                damage, bounce = pole.collides_with(drone)
-                if damage:
-                    self.ge[i].fitness -= 200
-                    self.nets.pop(i)
-                    self.ge.pop(i)
-                    self.drones.remove(drone)
-                    break
-                if bounce:
-                    drone.velocity.y = -drone.velocity.y
-                    drone.velocity.x = -drone.velocity.x
-                if pole.position.distance_to(drone.position) > self.MIN_POLE_POLE_DISTANCE:
-                    self.ge[i].fitness += 0.1
 
     def _draw(self):
         self.screen.fill((0, 255, 0))
