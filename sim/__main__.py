@@ -1,6 +1,7 @@
 import os
 import neat
 import pygame
+import matplotlib.pyplot as plt
 
 from cyberzoo_game import CyberZooSim
 
@@ -17,7 +18,14 @@ def run(config_path):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    winner = p.run(eval_genomes, 100000)
+    winner = p.run(eval_genomes, 10000)
+
+    generation_fitness = stats.get_fitness_mean()
+    plt.plot(generation_fitness)
+    plt.xlabel('Generation')
+    plt.ylabel('Mean Fitness')
+    plt.show()
+
     print(f"Best genome: {winner}")
 
 

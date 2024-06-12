@@ -1,7 +1,8 @@
 import pygame
-import neat
 import numpy as np
+import torch
 
+from pytorch_neat.pytorch_neat.recurrent_net import RecurrentNet
 from models import Drone, Pole
 from utils import get_random_position, print_text, normalize_array
 from pygame.math import Vector2
@@ -31,7 +32,7 @@ class CyberZooSim:
         self.ge = []
 
         for _, g in genomes:
-            net = neat.nn.RecurrentNetwork.create(g, config)
+            net = RecurrentNet.create(g, config)
             self.nets.append(net)
             self.drones.append(Drone(self.DRONE_START_POS))
             g.fitness = 0
@@ -110,18 +111,30 @@ class CyberZooSim:
                 drone.position.distance_to(self.poles[4].position),
                 drone.position.distance_to(self.poles[5].position)
             ])
+            input_array_5 = np.array([
+                self.poles[0].position.x, self.poles[0].position.y,
+                self.poles[1].position.x, self.poles[1].position.y,
+                self.poles[2].position.x, self.poles[2].position.y,
+                self.poles[3].position.x, self.poles[3].position.y,
+                self.poles[4].position.x, self.poles[4].position.y,
+                self.poles[5].position.x, self.poles[5].position.y,
+            ])
 
             normalized_input = np.concatenate([normalize_array(input_array_1, -1, 1),
                                                normalize_array(input_array_2, 0, 700),
                                                normalize_array(input_array_3, -20, 20),
-                                               normalize_array(input_array_4, -700, 700)])
-            movement_output = self.nets[i].activate(normalized_input)
+                                               normalize_array(input_array_4, -700, 700),
+                                               normalize_array(input_array_5, 0, 700)])
 
-            if movement_output[0] > 0.5:
+            movement_output = self.nets[i].activate(normalized_input.reshape(1, -1))
+
+            relu_threshold = 0.5
+
+            if movement_output[0, 0] > relu_threshold:
                 drone.rotate(clockwise=True)
-            if movement_output[1] > 0.5:
+            if movement_output[0, 1] > relu_threshold:
                 drone.accelerate()
-            if movement_output[2] > 0.5:
+            if movement_output[0, 2] > relu_threshold:
                 drone.rotate(clockwise=False)
 
             if is_key_pressed[pygame.K_RIGHT]:

@@ -3,4 +3,5 @@
 [Original paper on NEAT](https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)\
 [NEAT applied to games example 1](https://arxiv.org/pdf/2207.14140)\
 [NEAT applied to games example 2](https://arxiv.org/pdf/2208.13632)\
-[MAV Lab repository](https://github.com/MAV-Lab23)
+[MAV Lab repository](https://github.com/MAV-Lab23)\
+[PyTorch NEAT](https://github.com/uber-research/PyTorch-NEAT)
