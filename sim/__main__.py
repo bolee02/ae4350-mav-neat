@@ -4,6 +4,7 @@ import pygame
 import matplotlib.pyplot as plt
 
 from cyberzoo_game import CyberZooSim
+from pytorch_neat.pytorch_neat.neat_reporter import LogReporter
 
 
 def run(config_path):
@@ -17,6 +18,8 @@ def run(config_path):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    logger = LogReporter
+    p.add_reporter(logger)
 
     winner = p.run(eval_genomes, 10000)
 

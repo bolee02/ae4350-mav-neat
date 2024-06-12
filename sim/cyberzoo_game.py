@@ -1,6 +1,5 @@
 import pygame
 import numpy as np
-import torch
 
 from pytorch_neat.pytorch_neat.recurrent_net import RecurrentNet
 from models import Drone, Pole
