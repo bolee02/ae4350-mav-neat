@@ -1,8 +1,9 @@
 import pygame
 import numpy as np
 import random
+import neat
 
-from pytorch_neat.pytorch_neat.recurrent_net import RecurrentNet
+#from pytorch_neat.pytorch_neat.recurrent_net import RecurrentNet
 from models import Drone, Pole
 from utils import get_random_position, print_text, normalize_array
 from pygame.math import Vector2
@@ -33,7 +34,7 @@ class CyberZooSim:
         self.ge = []
 
         for _, g in genomes:
-            net = RecurrentNet.create(g, config)
+            net = neat.nn.FeedForwardNetwork.create(g, config)
             self.nets.append(net)
             self.drones.append(Drone(self.DRONE_START_POS))
             g.fitness = 0
@@ -128,17 +129,17 @@ class CyberZooSim:
                                                normalize_array(input_array_4, -700, 700),
                                                normalize_array(input_array_5, 0, 700)])
 
-            movement_output = self.nets[i].activate(normalized_input.reshape(1, -1))
+            movement_output = self.nets[i].activate(normalized_input) #self.nets[i].activate(normalized_input.reshape(1, -1))
 
             relu_threshold = 0.5
 
-            if movement_output[0, 0] > relu_threshold:
+            if movement_output[0] > relu_threshold:
                 drone.rotate(clockwise=True)
-            if movement_output[0, 1] > relu_threshold:
+            if movement_output[1] > relu_threshold:
                 drone.accelerate()
-            if movement_output[0, 2] > relu_threshold:
+            if movement_output[2] > relu_threshold:
                 drone.rotate(clockwise=False)
-            if movement_output[0, 3] > relu_threshold:
+            if movement_output[3] > relu_threshold:
                 drone.decelerate()
             """
             if is_key_pressed[pygame.K_RIGHT]:
