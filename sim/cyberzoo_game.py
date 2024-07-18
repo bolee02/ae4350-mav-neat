@@ -170,14 +170,8 @@ class CyberZooSim:
 
             screen_width, screen_height = self.screen.get_size()
 
-            if drone.position.x - drone.radius - 1 < 0 or drone.position.x + drone.radius + 1 > screen_width:
-                self.ge[i].fitness -= 300
-                self.nets.pop(i)
-                self.ge.pop(i)
-                self.drones.remove(drone)
-                break
-
-            if drone.position.y - drone.radius - 1 < 0 or drone.position.y + drone.radius + 1 > screen_height:
+            if (drone.position.x - drone.radius - 1 < 0 or drone.position.x + drone.radius + 1 > screen_width
+                    or drone.position.y - drone.radius - 1 < 0 or drone.position.y + drone.radius + 1 > screen_height):
                 self.ge[i].fitness -= 300
                 self.nets.pop(i)
                 self.ge.pop(i)
