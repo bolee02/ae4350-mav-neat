@@ -26,9 +26,14 @@ class CyberZooSim:
         self.event_count = 0
         self.move_to_event = False
         self.random_positions = []
+        self.alive_count = 1
+        self.alive_pos = 0
 
         self.poles = []
         self.drones = []
+
+        self.radars = []
+        self.drawing_radars = []
 
         self.nets = []
         self.ge = []
@@ -70,7 +75,7 @@ class CyberZooSim:
             self._process_game_logic()
             self._draw()
 
-            if len(self.drones) == 0:
+            if self.alive_count < 1:
                 running = False
 
     def _init_pygame(self):
@@ -90,7 +95,7 @@ class CyberZooSim:
                 if len(self.drones) < 3 or self.time > 15:
                     for _ in range(poles_to_move - 1):
                         self.random_positions.append(get_random_position(self.screen))
-                    self.random_positions.append(self.drones[0].position)
+                    self.random_positions.append(self.alive_pos)
                 else:
                     for _ in range(poles_to_move):
                         self.random_positions.append(get_random_position(self.screen))
@@ -106,14 +111,14 @@ class CyberZooSim:
             input_array_3 = np.array([
                 drone.velocity.x, drone.velocity.y
             ])
-            input_array_4 = np.array([
+            """input_array_4 = np.array([
                 drone.position.distance_to(self.poles[0].position),
                 drone.position.distance_to(self.poles[1].position),
                 drone.position.distance_to(self.poles[2].position),
                 drone.position.distance_to(self.poles[3].position),
                 drone.position.distance_to(self.poles[4].position),
                 drone.position.distance_to(self.poles[5].position)
-            ])
+            ])"""
             input_array_5 = np.array([
                 self.poles[0].position.x, self.poles[0].position.y,
                 self.poles[1].position.x, self.poles[1].position.y,
@@ -123,39 +128,55 @@ class CyberZooSim:
                 self.poles[5].position.x, self.poles[5].position.y,
             ])
 
-            normalized_input = np.concatenate([normalize_array(input_array_1, -1, 1),
+            normalized_input = np.concatenate([#normalize_array(input_array_1, -1, 1),
                                                normalize_array(input_array_2, 0, 700),
-                                               normalize_array(input_array_3, -20, 20),
-                                               normalize_array(input_array_4, -700, 700),
+                                               #normalize_array(input_array_3, -20, 20),
+                                               #normalize_array(input_array_4, -700, 700),
                                                normalize_array(input_array_5, 0, 700)])
 
             movement_output = self.nets[i].activate(normalized_input)
 
-            relu_threshold = 0.5
+            #relu_threshold = 0.5
 
-            if movement_output[0] > relu_threshold:
+            choice = movement_output.index(max(movement_output))
+            if choice == 0:
+                drone.move_up()
+            elif choice == 1:
+                drone.move_down()
+            elif choice == 2:
+                drone.move_right()
+            elif choice == 3:
+                drone.move_left()
+            """if movement_output[0] > relu_threshold:
                 drone.rotate(clockwise=True)
             if movement_output[1] > relu_threshold:
                 drone.accelerate()
             if movement_output[2] > relu_threshold:
                 drone.rotate(clockwise=False)
             if movement_output[3] > relu_threshold:
-                drone.decelerate()
-            """
-            if is_key_pressed[pygame.K_RIGHT]:
-                drone.rotate(clockwise=True)
-            if is_key_pressed[pygame.K_UP]:
-                drone.accelerate()
-            elif is_key_pressed[pygame.K_DOWN]:
-                drone.decelerate()
-            elif is_key_pressed[pygame.K_LEFT]:
-                drone.rotate(clockwise=False)
-            """
+                drone.decelerate()"""
+
+            """if movement_output[0] > relu_threshold:
+                drone.move_right()
+            if movement_output[1] > relu_threshold:
+                drone.move_up()
+            if movement_output[2] > relu_threshold:
+                drone.move_down()
+            if movement_output[3] > relu_threshold:
+                drone.move_left()"""
+
     def _get_game_objects(self):
         game_objects = [*self.poles]
 
+        drones_alive = 0
+
         for drone in self.drones:
-            game_objects.append(drone)
+            if drone.alive:
+                game_objects.append(drone)
+                self.alive_pos = drone.position
+                drones_alive += 1
+
+        self.alive_count = drones_alive
 
         return game_objects
 
@@ -163,34 +184,36 @@ class CyberZooSim:
         for i, drone in enumerate(self.drones):
             drone.move(self.screen)
             drone.distance_travelled(self.time)
-            self.ge[i].fitness += drone.distance/1000
-
-            if drone.position == Vector2(350, 350):
-                self.ge[i].fitness -= 1
+            if drone.alive:
+                self.ge[i].fitness += drone.distance/6000
 
             screen_width, screen_height = self.screen.get_size()
 
             if (drone.position.x - drone.radius - 1 < 0 or drone.position.x + drone.radius + 1 > screen_width
                     or drone.position.y - drone.radius - 1 < 0 or drone.position.y + drone.radius + 1 > screen_height):
-                self.ge[i].fitness -= 300
-                self.nets.pop(i)
+                #self.ge[i].fitness -= 6000
+                """self.nets.pop(i)
                 self.ge.pop(i)
-                self.drones.remove(drone)
+                self.drones.remove(drone)"""
+                drone.alive = False
                 break
 
             for pole in self.poles:
                 damage, bounce = pole.collides_with(drone)
                 if damage:
-                    self.ge[i].fitness -= 300
-                    self.nets.pop(i)
+                    #self.ge[i].fitness -= 6000
+                    """self.nets.pop(i)
                     self.ge.pop(i)
-                    self.drones.remove(drone)
+                    self.drones.remove(drone)"""
+                    drone.alive = False
                     break
                 if bounce:
                     drone.velocity.y = -drone.velocity.y
                     drone.velocity.x = -drone.velocity.x
-                if pole.position.distance_to(drone.position) > self.MIN_POLE_POLE_DISTANCE:
-                    self.ge[i].fitness += 0.1
+                    drone.alive = False
+                if pole.position.distance_to(drone.position) < self.MIN_POLE_POLE_DISTANCE:
+                    if drone.alive:
+                        self.ge[i].fitness -= drone.distance/6000
         moves = 0
         for i, pole in enumerate(self.poles):
             if self.move_to_event and moves != len(self.random_positions):
@@ -205,6 +228,11 @@ class CyberZooSim:
                 moves += 1
 
     def _draw(self):
+
+        if self.alive_count < 1:
+            for drone in self.drones:
+                self.drones.remove(drone)
+
         self.screen.fill((0, 255, 0))
 
         for game_object in self._get_game_objects():

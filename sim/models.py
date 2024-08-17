@@ -5,6 +5,9 @@ from pygame.math import Vector2
 from pygame.transform import rotozoom
 
 UP = Vector2(0, -1)
+DOWN = Vector2(0, 1)
+LEFT = Vector2(-1, 0)
+RIGHT = Vector2(1, 0)
 
 
 class GameObject:
@@ -13,6 +16,7 @@ class GameObject:
         self.sprite = pygame.transform.scale(sprite, (75, 75))
         self.radius = self.sprite.get_width() / 2
         self.velocity = Vector2(velocity)
+        self.alive = True
 
     def draw(self, surface):
         blit_position = self.position - Vector2(self.radius)
@@ -47,8 +51,8 @@ class GameObject:
 
 
 class Drone(GameObject):
-    MANEUVERABILITY = 3
-    ACCELERATION = 0.2
+    MANEUVERABILITY = 2
+    ACCELERATION = 0.1
 
     def __init__(self, position):
         self.direction = Vector2(UP)
@@ -76,6 +80,18 @@ class Drone(GameObject):
 
     def distance_travelled(self, time):
         self.distance += math.sqrt(self.velocity.y**2 + self.velocity.x**2) * time / 100
+
+    def move_up(self):
+        self.velocity += Vector2(UP) * self.ACCELERATION
+
+    def move_down(self):
+        self.velocity += Vector2(DOWN) * self.ACCELERATION
+
+    def move_left(self):
+        self.velocity += Vector2(LEFT) * self.ACCELERATION
+
+    def move_right(self):
+        self.velocity += Vector2(RIGHT) * self.ACCELERATION
 
 
 class Pole(GameObject):
