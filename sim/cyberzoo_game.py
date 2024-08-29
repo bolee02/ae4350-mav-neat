@@ -27,7 +27,6 @@ class CyberZooSim:
         self.move_to_event = False
         self.random_positions = []
         self.alive_count = 1
-        self.alive_pos = 0
 
         self.poles = []
         self.drones = []
@@ -92,10 +91,11 @@ class CyberZooSim:
                 self.move_to_event = True
                 self.random_positions = []
                 poles_to_move = random.randint(1, self.NUMBER_OF_POLES-1)
-                if len(self.drones) < 3 or self.time > 15:
+                if len(self.drones) < 3 or self.time > 3:
                     for _ in range(poles_to_move - 1):
                         self.random_positions.append(get_random_position(self.screen))
-                    self.random_positions.append(self.alive_pos)
+                    alive_pos = round(random.choice([drone for drone in self.drones if drone.alive]).position)
+                    self.random_positions.append(alive_pos)
                 else:
                     for _ in range(poles_to_move):
                         self.random_positions.append(get_random_position(self.screen))
@@ -147,13 +147,14 @@ class CyberZooSim:
                 drone.move_right()
             elif choice == 3:
                 drone.move_left()
-            """if movement_output[0] > relu_threshold:
+
+            """if choice == 0:
                 drone.rotate(clockwise=True)
-            if movement_output[1] > relu_threshold:
-                drone.accelerate()
-            if movement_output[2] > relu_threshold:
+            elif choice == 1:
                 drone.rotate(clockwise=False)
-            if movement_output[3] > relu_threshold:
+            elif choice == 2:
+                drone.accelerate()
+            elif choice == 3:
                 drone.decelerate()"""
 
             """if movement_output[0] > relu_threshold:
@@ -173,7 +174,6 @@ class CyberZooSim:
         for drone in self.drones:
             if drone.alive:
                 game_objects.append(drone)
-                self.alive_pos = drone.position
                 drones_alive += 1
 
         self.alive_count = drones_alive
@@ -191,7 +191,7 @@ class CyberZooSim:
 
             if (drone.position.x - drone.radius - 1 < 0 or drone.position.x + drone.radius + 1 > screen_width
                     or drone.position.y - drone.radius - 1 < 0 or drone.position.y + drone.radius + 1 > screen_height):
-                #self.ge[i].fitness -= 6000
+                #self.ge[i].fitness -= 5
                 """self.nets.pop(i)
                 self.ge.pop(i)
                 self.drones.remove(drone)"""
@@ -201,19 +201,19 @@ class CyberZooSim:
             for pole in self.poles:
                 damage, bounce = pole.collides_with(drone)
                 if damage:
-                    #self.ge[i].fitness -= 6000
+                    #self.ge[i].fitness -= 15
                     """self.nets.pop(i)
                     self.ge.pop(i)
                     self.drones.remove(drone)"""
                     drone.alive = False
                     break
                 if bounce:
-                    drone.velocity.y = -drone.velocity.y
-                    drone.velocity.x = -drone.velocity.x
+                    """drone.velocity.y = -drone.velocity.y
+                    drone.velocity.x = -drone.velocity.x"""
                     drone.alive = False
-                if pole.position.distance_to(drone.position) < self.MIN_POLE_POLE_DISTANCE:
+                """if pole.position.distance_to(drone.position) < self.MIN_POLE_POLE_DISTANCE:
                     if drone.alive:
-                        self.ge[i].fitness -= drone.distance/6000
+                        self.ge[i].fitness -= drone.distance/6000"""
         moves = 0
         for i, pole in enumerate(self.poles):
             if self.move_to_event and moves != len(self.random_positions):
